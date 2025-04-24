@@ -1,9 +1,10 @@
-from fastapi import APIRouter, Depends, Response, status
+from fastapi import APIRouter, Depends, Response, Request, status
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.schemas.person import NaturalPersonCreate, LegalPersonCreate, LoginRequest
 from app.services.auth_service import AuthService
 from typing import Dict, Any
+from app.core.response_handler import ResponseHandler
 
 router = APIRouter()
 
@@ -56,5 +57,23 @@ def login(
             secure=False,
             samesite="lax"
         )
+    
+    return result
+
+@router.post(
+    "/user/logout",
+    summary="Realizar logout",
+    description="Encerra a sessão do usuário atual",
+    status_code=status.HTTP_200_OK
+)
+def logout(
+    request: Request,
+    response: Response,
+    db: Session = Depends(get_db)
+) -> Dict[str, Any]:
+    auth_service = AuthService(db)
+    result = auth_service.logout_user(request)
+    
+    response.delete_cookie("Authorization")
     
     return result

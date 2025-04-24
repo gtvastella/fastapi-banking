@@ -2,8 +2,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
 from pydantic import ValidationError
+from starlette.exceptions import HTTPException
 
-from app.api.v1.routes import auth_router, transaction_router
+from app.api.v1.routes import auth_router, transaction_router, user_router
 from app.core.database import create_tables
 from app.core.auth_middleware import AuthMiddleware
 from app.core.exceptions import AppException
@@ -12,7 +13,8 @@ from app.core.error_handlers import (
     app_exception_handler,
     validation_exception_handler,
     python_exception_handler,
-    pydantic_validation_exception_handler
+    pydantic_validation_exception_handler,
+    not_found_exception_handler
 )
 import typer
 import alembic.config
@@ -46,9 +48,11 @@ app.add_exception_handler(AppException, app_exception_handler)
 app.add_exception_handler(RequestValidationError, validation_exception_handler)
 app.add_exception_handler(ValidationError, pydantic_validation_exception_handler)
 app.add_exception_handler(Exception, python_exception_handler)
+app.add_exception_handler(HTTPException, not_found_exception_handler)
 
 app.include_router(auth_router.router, prefix="/api/v1", tags=["auth"])
 app.include_router(transaction_router.router, prefix="/api/v1", tags=["transactions"])
+app.include_router(user_router.router, prefix="/api/v1", tags=["user"])
 
 @app.get("/")
 def read_root():

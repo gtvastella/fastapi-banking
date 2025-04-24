@@ -20,6 +20,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
             "/api/v1/user/login", 
             "/api/v1/user/register/natural",
             "/api/v1/user/register/legal", 
+            "/api/v1/user/logout",
             "/docs", 
             "/redoc", 
             "/openapi.json", 
@@ -30,6 +31,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
             for path in self.exclude_paths 
             if path.endswith("*")
         ]
+        self.app = app
 
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint):
         if self._is_path_excluded(request.url.path):

@@ -57,3 +57,6 @@ class PersonRepository(BaseRepository[Person]):
             self.db.refresh(user)
             return user
         return None
+
+    def get_profile_by_id(self, user_id: int):
+        return self.get_by_id(user_id)

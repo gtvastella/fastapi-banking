@@ -114,3 +114,17 @@ class BusinessLogicException(AppException):
             data=data,
             error_code=error_code
         )
+
+class NotFoundError(AppException):
+    def __init__(
+        self,
+        message: str = "Recurso não encontrado",
+        data: Any = [],
+        error_code: Optional[Union[str, int]] = "NOT_FOUND",
+    ):
+        super().__init__(
+            status_code=status.HTTP_404_NOT_FOUND,
+            message=message,
+            data=data,
+            error_code=error_code
+        )

@@ -205,3 +205,36 @@ class TestAuthEndpoints:
         assert "message" in data
         assert data["error_code"] == "INVALID_CREDENTIALS"
         assert "Authorization" not in response.cookies
+
+    def test_logout(self, client, test_natural_person):
+        login_response = client.post(
+            "/api/v1/user/login",
+            json={
+                "email": test_natural_person.email,
+                "password": "senha123"
+            }
+        )
+        assert login_response.status_code == 200
+        assert "Authorization" in login_response.cookies
+        
+        client.cookies = login_response.cookies
+        
+        response = client.post("/api/v1/user/logout")
+        
+        assert response.status_code == 200
+        data = response.json()
+        assert data["success"] is True
+        assert "message" in data
+        
+        if "Authorization" in response.cookies:
+            assert response.cookies["Authorization"] == ""
+
+    def test_logout_unauthenticated(self, client):
+        assert "Authorization" not in client.cookies
+        
+        response = client.post("/api/v1/user/logout")
+        
+        assert response.status_code == 401
+        data = response.json()
+        assert data["success"] is False
+        assert "message" in data

@@ -52,3 +52,17 @@ def withdraw(
     current_user = get_current_user_from_request(request)
     transaction_service = TransactionService(db)
     return transaction_service.withdraw(data, current_user)
+
+@router.get(
+    "/history",
+    summary="Obter extrato de transações",
+    description="Recupera o histórico de transações do usuário",
+    status_code=status.HTTP_200_OK
+)
+def get_transaction_history(
+    request: Request, 
+    db: Session = Depends(get_db)
+) -> Dict[str, Any]:
+    current_user = get_current_user_from_request(request)
+    transaction_service = TransactionService(db)
+    return transaction_service.get_transaction_history(current_user.id)

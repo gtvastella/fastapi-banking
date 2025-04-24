@@ -9,7 +9,8 @@ from app.core.response_handler import ResponseHandler
 from app.core.exceptions import (
     BadRequestException,
     DatabaseException,
-    AppException
+    AppException,
+    NotFoundException
 )
 
 class TransactionService:
@@ -121,6 +122,52 @@ class TransactionService:
             raise
         except Exception as e:
             raise DatabaseException(message=f"Erro no saque: {str(e)}")
+
+    def get_transaction_history(self, user_id: int) -> Dict[str, Any]:
+        try:
+            user = self.person_repository.get_by_id(user_id)
+            if not user:
+                raise NotFoundException(message="Usuário não encontrado", error_code="USER_NOT_FOUND")
+                
+            transactions = self.transaction_repository.get_user_transactions(user_id)
+            
+            formatted_transactions = []
+            for transaction in transactions:
+                transaction_data = {
+                    "id": transaction.id,
+                    "amount": transaction.amount,
+                    "created_at": transaction.created_at,
+                    "type": transaction.transaction_type
+                }
+                
+                if transaction.transaction_type == TYPE_TRANSACTION_TRANSFER:
+                    if transaction.sender_id == user_id:
+                        transaction_data["description"] = f"Transferência enviada para ID {transaction.recipient_id}"
+                        transaction_data["direction"] = "out"
+                    else:
+                        transaction_data["description"] = f"Transferência recebida de ID {transaction.sender_id}"
+                        transaction_data["direction"] = "in"
+                elif transaction.transaction_type == TYPE_TRANSACTION_DEPOSIT:
+                    transaction_data["description"] = "Depósito"
+                    transaction_data["direction"] = "in"
+                elif transaction.transaction_type == TYPE_TRANSACTION_WITHDRAW:
+                    transaction_data["description"] = "Saque"
+                    transaction_data["direction"] = "out"
+                
+                formatted_transactions.append(transaction_data)
+            
+            return self.response.success(
+                data={
+                    "balance": user.balance,
+                    "transactions": formatted_transactions
+                },
+                message="Extrato de transações recuperado com sucesso"
+            )
+        
+        except Exception as e:
+            if not isinstance(e, NotFoundException):
+                raise DatabaseException(message=f"Erro ao recuperar extrato: {str(e)}")
+            raise
 
     def _validate_sender(self, sender_id: int) -> Person:
         sender = self.person_repository.get_by_id(sender_id)

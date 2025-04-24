@@ -6,6 +6,7 @@ from app.core.exceptions import AppException
 from app.core.response_handler import ResponseHandler
 import traceback
 import logging
+from starlette.exceptions import HTTPException
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -66,5 +67,14 @@ async def python_exception_handler(request: Request, exc: Exception) -> JSONResp
         content=ResponseHandler.error(
             message="Ocorreu um erro inesperado",
             error_code="INTERNAL_SERVER_ERROR"
+        )
+    )
+
+async def not_found_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
+    return JSONResponse(
+        status_code=status.HTTP_404_NOT_FOUND,
+        content=ResponseHandler.error(
+            message="Recurso não encontrado",
+            error_code="NOT_FOUND"
         )
     )

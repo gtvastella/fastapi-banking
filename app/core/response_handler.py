@@ -1,5 +1,5 @@
 from typing import Any, Dict, Optional, Union
-
+from fastapi import status
 
 class ResponseHandler:
     
@@ -12,11 +12,15 @@ class ResponseHandler:
         }
     
     @staticmethod
-    def error(message: str = "Ocorreu um erro durante a operação", data: Any = [], error_code: Optional[Union[str, int]] = None) -> Dict[str, Any]:
+    def error(
+        message: str = "Ocorreu um erro durante a operação", 
+        data: Any = [], 
+        error_code: Optional[Union[str, int]] = None,
+    ) -> Dict[str, Any]:
         response = {
             "success": False,
             "data": data,
-            "message": message
+            "message": message,
         }
         
         if error_code is not None:

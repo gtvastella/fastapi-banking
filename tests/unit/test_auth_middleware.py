@@ -7,6 +7,7 @@ from app.core.auth_middleware import AuthMiddleware
 import jwt
 import logging
 import re
+from starlette.routing import Match
 
 @pytest.mark.unit
 class TestAuthMiddleware:
@@ -202,3 +203,24 @@ class TestAuthMiddleware:
         assert result is None
         mock_jwt_decode.assert_called_once()
         mock_logger.error.assert_called_once()
+    
+    async def test_existing_route_requires_auth(self, middleware):
+        mock_app = Mock()
+        mock_route = Mock()
+        mock_route.matches.return_value = (Match.FULL, {})
+        
+        mock_app.routes = [mock_route]
+        middleware.app = mock_app
+        
+        mock_request = Mock(spec=Request)
+        mock_request.url.path = "/api/v1/protected"
+        mock_request.cookies = {}
+        mock_request.headers = {}
+        
+        mock_call_next = AsyncMock(spec=RequestResponseEndpoint)
+        
+        response = await middleware.dispatch(mock_request, mock_call_next)
+        
+        # Auth middleware should stop with 401 for existing protected routes
+        assert response.status_code == 401
+        assert mock_call_next.call_count == 0

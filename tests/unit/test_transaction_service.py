@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 from app.services.transaction_service import TransactionService
 from app.schemas.transaction import TransferRequest, DepositRequest, WithdrawRequest
 from app.models.person import TYPE_NATURAL_PERSON, TYPE_LEGAL_PERSON
-from app.core.exceptions import BadRequestException, ForbiddenException
+from app.core.exceptions import BadRequestException, ForbiddenException, NotFoundException
 
 @pytest.mark.unit
 class TestTransactionService:
@@ -279,4 +279,79 @@ class TestTransactionService:
             service.transfer(transfer_data, current_user)
         
         assert exc_info.value.status_code == 400
+        assert exc_info.value.error_code == "USER_NOT_FOUND"
+        
+        mock_person_repo_instance.update_balance.assert_not_called()
+
+    @patch('app.services.transaction_service.PersonRepository')
+    @patch('app.services.transaction_service.TransactionRepository')
+    def test_get_transaction_history(self, mock_transaction_repo, mock_person_repo):
+        mock_user = MagicMock()
+        mock_user.id = 1
+        mock_user.balance = 1000.0
+        
+        mock_transactions = [
+            MagicMock(
+                id=1, 
+                amount=100.0, 
+                created_at="2023-01-01", 
+                transaction_type=1,  # TYPE_TRANSACTION_DEPOSIT
+                sender_id=1, 
+                recipient_id=None
+            ),
+            MagicMock(
+                id=2, 
+                amount=200.0, 
+                created_at="2023-01-02", 
+                transaction_type=2,  # TYPE_TRANSACTION_WITHDRAW
+                sender_id=1, 
+                recipient_id=None
+            ),
+            MagicMock(
+                id=3, 
+                amount=300.0, 
+                created_at="2023-01-03", 
+                transaction_type=3,  # TYPE_TRANSACTION_TRANSFER
+                sender_id=2, 
+                recipient_id=1
+            )
+        ]
+        
+        mock_person_repo_instance = MagicMock()
+        mock_person_repo_instance.get_by_id.return_value = mock_user
+        mock_person_repo.return_value = mock_person_repo_instance
+        
+        mock_transaction_repo_instance = MagicMock()
+        mock_transaction_repo_instance.get_user_transactions.return_value = mock_transactions
+        mock_transaction_repo.return_value = mock_transaction_repo_instance
+        
+        db = MagicMock()
+        service = TransactionService(db)
+        result = service.get_transaction_history(mock_user.id)
+        
+        assert result["success"] is True
+        assert result["data"]["balance"] == 1000.0
+        assert len(result["data"]["transactions"]) == 3
+        assert "message" in result
+        
+        assert result["data"]["transactions"][0]["direction"] == "in"  # Deposit
+        assert result["data"]["transactions"][1]["direction"] == "out"  # Withdraw
+        assert result["data"]["transactions"][2]["direction"] == "in"  # Transfer received
+        
+        mock_person_repo_instance.get_by_id.assert_called_once_with(1)
+        mock_transaction_repo_instance.get_user_transactions.assert_called_once_with(1)
+
+    @patch('app.services.transaction_service.PersonRepository')
+    def test_get_transaction_history_user_not_found(self, mock_person_repo):
+        mock_person_repo_instance = MagicMock()
+        mock_person_repo_instance.get_by_id.return_value = None
+        mock_person_repo.return_value = mock_person_repo_instance
+        
+        db = MagicMock()
+        service = TransactionService(db)
+        
+        with pytest.raises(NotFoundException) as exc_info:
+            service.get_transaction_history(999)
+        
+        assert exc_info.value.status_code == 404
         assert exc_info.value.error_code == "USER_NOT_FOUND"
