@@ -39,4 +39,4 @@ class TestProfileEndpoints:
         assert "error_code" in data
         assert data["error_code"] == "INVALID_TOKEN"
     
-   
+

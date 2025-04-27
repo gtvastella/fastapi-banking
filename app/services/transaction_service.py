@@ -158,7 +158,6 @@ class TransactionService:
             
             return self.response.success(
                 data={
-                    "balance": user.balance,
                     "transactions": formatted_transactions
                 },
                 message="Extrato de transações recuperado com sucesso"
@@ -168,6 +167,27 @@ class TransactionService:
             if not isinstance(e, NotFoundException):
                 raise DatabaseException(message=f"Erro ao recuperar extrato: {str(e)}")
             raise
+        
+    def get_balance(self, user_id: int) -> Dict[str, Any]:
+        try:
+            user = self.person_repository.get_by_id(user_id)
+            
+            if not user:
+                raise NotFoundException(
+                    message="Usuário não encontrado", 
+                    error_code="USER_NOT_FOUND"
+                )
+            
+            return self.response.success(
+                data={"balance": user.balance},
+                message="Saldo recuperado com sucesso"
+            )
+            
+        except Exception as e:
+            if not isinstance(e, NotFoundException):
+                raise DatabaseException(message=f"Erro ao recuperar saldo: {str(e)}")
+            raise
+
 
     def _validate_sender(self, sender_id: int) -> Person:
         sender = self.person_repository.get_by_id(sender_id)

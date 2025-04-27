@@ -41,8 +41,6 @@ class TestTransactionHistoryEndpoints:
         assert response.status_code == 200
         data = response.json()
         assert data["success"] is True
-        assert "balance" in data["data"]
-        assert data["data"]["balance"] == float(test_natural_person.balance)
         
         transactions = data["data"]["transactions"]
         assert len(transactions) == 4

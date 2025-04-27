@@ -90,4 +90,4 @@ class TestProfileService:
         
         mock_person_repo_instance.get_profile_by_id.assert_called_once_with(999)
     
-    
+

@@ -57,6 +57,14 @@ def login(
             secure=False,
             samesite="lax"
         )
+        response.set_cookie(
+            key="x-bnk-auth",
+            value="true",
+            httponly=False,
+            max_age=1800, 
+            secure=False,
+            samesite="lax"
+        )
     
     return result
 
@@ -75,5 +83,6 @@ def logout(
     result = auth_service.logout_user(request)
     
     response.delete_cookie("Authorization")
+    response.delete_cookie("x-bnk-auth")
     
     return result

@@ -66,3 +66,17 @@ def get_transaction_history(
     current_user = get_current_user_from_request(request)
     transaction_service = TransactionService(db)
     return transaction_service.get_transaction_history(current_user.id)
+
+@router.get(
+    "/balance",
+    summary="Obter saldo do usuário",
+    description="Recupera apenas o saldo atual do usuário autenticado",
+    status_code=status.HTTP_200_OK
+)
+def get_balance(
+    request: Request,
+    db: Session = Depends(get_db)
+) -> Dict[str, Any]:
+    current_user = get_current_user_from_request(request)
+    transaction_service = TransactionService(db)
+    return transaction_service.get_balance(current_user.id)

@@ -30,10 +30,14 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
             "type": error.get("type", "")
         })
     
+    first_error_msg = error_details[0]["msg"] if error_details else "Erro de validação nos dados da requisição"
+    if first_error_msg.startswith("Value error, "):
+        first_error_msg = first_error_msg[13:]
+        
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         content=ResponseHandler.error(
-            message="Erro de validação nos dados da requisição",
+            message=first_error_msg,
             data=error_details,
             error_code="VALIDATION_ERROR"
         )
@@ -48,10 +52,15 @@ async def pydantic_validation_exception_handler(request: Request, exc: Validatio
             "type": error.get("type", "")
         })
     
+    first_error_msg = error_details[0]["msg"] if error_details else "Erro de validação nos dados"
+    if first_error_msg.startswith("Value error, "):
+        first_error_msg = first_error_msg[13:]
+        
+    
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         content=ResponseHandler.error(
-            message="Erro de validação nos dados",
+            message=first_error_msg,
             data=error_details,
             error_code="VALIDATION_ERROR"
         )

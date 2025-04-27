@@ -70,7 +70,6 @@ class TestTransactionServiceHistory:
         
         assert result["success"] is True
         assert "message" in result
-        assert result["data"]["balance"] == 1200.0
         assert len(result["data"]["transactions"]) == 4
         
         # Check deposit transaction
@@ -138,7 +137,6 @@ class TestTransactionServiceHistory:
         
         assert result["success"] is True
         assert "message" in result
-        assert result["data"]["balance"] == 0.0
         assert len(result["data"]["transactions"]) == 0
         
         mock_person_repo_instance.get_by_id.assert_called_once_with(1)

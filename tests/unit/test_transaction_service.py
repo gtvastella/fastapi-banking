@@ -330,7 +330,6 @@ class TestTransactionService:
         result = service.get_transaction_history(mock_user.id)
         
         assert result["success"] is True
-        assert result["data"]["balance"] == 1000.0
         assert len(result["data"]["transactions"]) == 3
         assert "message" in result
         
