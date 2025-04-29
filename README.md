@@ -96,7 +96,15 @@ docker-compose up -d
 ```json
 {
   "success": true,
-  "data": [],
+  "data": {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "user": {
+      "id": 1,
+      "name": "João Silva",
+      "email": "joao@exemplo.com",
+      "type": 1
+    }
+  },
   "message": "Login realizado com sucesso"
 }
 ```
@@ -165,6 +173,57 @@ docker-compose up -d
     "new_balance": 600.0
   },
   "message": "Saque realizado com sucesso"
+}
+```
+
+#### Histórico de Transações
+- **URL:** `GET /api/v1/operation/history`
+- **Resposta:**
+```json
+{
+  "success": true,
+  "data": {
+    "transactions": [
+      {
+        "id": 3,
+        "amount": 100.0,
+        "created_at": "2023-11-01T10:30:45",
+        "type": 2,
+        "description": "Saque",
+        "direction": "out"
+      },
+      {
+        "id": 2,
+        "amount": 200.0,
+        "created_at": "2023-11-01T09:15:22",
+        "type": 1,
+        "description": "Depósito",
+        "direction": "in"
+      },
+      {
+        "id": 1,
+        "amount": 500.0,
+        "created_at": "2023-10-31T14:22:05",
+        "type": 3,
+        "description": "Transferência enviada para ID 2",
+        "direction": "out"
+      }
+    ]
+  },
+  "message": "Extrato de transações recuperado com sucesso"
+}
+```
+
+#### Consulta de Saldo
+- **URL:** `GET /api/v1/operation/balance`
+- **Resposta:**
+```json
+{
+  "success": true,
+  "data": {
+    "balance": 600.0
+  },
+  "message": "Saldo recuperado com sucesso"
 }
 ```
 
